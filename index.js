@@ -1,30 +1,30 @@
-const express = require('express')
-const cors = require('cors')
-const { Pool } = require('pg')
+const express = require('express');
+const cors = require('cors');
+const { Pool } = require('pg');
 
-const app = express()
-const port = 3001
+const app = express();
+const port = 3001;
 
-app.use(cors())
-app.use(express.urlencoded({ extended: false}))
-app.use(express.json())
+app.use(cors());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 app.get('/', async (req, res) => {
-  res.status(200).send('Hello World');
+    res.status(200).send('Hello World');
 });
 
-app.get('/accounts', async function(req, res){
+app.get('/accounts', async function (req, res) {
     const address = req.query['address'];
     const connection = [
-        // TODO: connection 저장해놓고 불러와서 사용하기
+    // TODO: connection 저장해놓고 불러와서 사용하기
         'postgres://public_readonly:nearprotocol@mainnet.db.explorer.indexer.near.dev/mainnet_explorer',
         'postgres://public_readonly:nearprotocol@testnet.db.explorer.indexer.near.dev/testnet_explorer',
-      ];
-    
-      const accountsIds = await Promise.all(connection.map(async (connectionString)=>{
+    ];
+
+    const accountsIds = await Promise.all(connection.map(async (connectionString) => {
 
         const { rows } = await new Pool({
-          connectionString,
+            connectionString,
         }).query(`
           SELECT DISTINCT account_id
           FROM access_keys
@@ -32,18 +32,18 @@ app.get('/accounts', async function(req, res){
           WHERE public_key = $1
               AND accounts.deleted_by_receipt_id IS NULL
               AND access_keys.deleted_by_receipt_id IS NULL
-        `, [address])
+        `, [address]);
 
-        return rows
+        return rows;
 
-      }))
-      
-      const result = accountsIds.reduce((acc, cur) => acc.concat(cur)).map((account) => account['account_id'])
+    }));
 
-      res.send(result);
-      
-})
+    const result = accountsIds.reduce((acc, cur) => acc.concat(cur)).map((account) => account['account_id']);
+
+    res.send(result);
+
+});
 
 app.listen(port, () => {
-  console.log(`App running on port ${port}.`)
-})
+    console.log(`App running on port ${port}.`);
+});
